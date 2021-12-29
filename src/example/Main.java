@@ -3,15 +3,6 @@ package example;
 // apache commons import
 import org.apache.commons.io.FilenameUtils;
 
-// rgu-algorithms imports
-import rgu.algorithms.*;
-import rgu.algorithms.collections.*;
-
-// rgu-transport imports
-import rgu.transport.geospatial.*;
-import rgu.transport.geospatial.multimodal.*;
-import rgu.transport.util.*;
-
 // standard library imports
 import java.io.*;
 import java.time.*;
@@ -21,76 +12,11 @@ import java.util.function.*;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        // load the pre-constructed sample network (only needs to be done once)
-        File file = new File("data/all-10m.transit");
-        TransitNetwork network = null;
-        try {
-            System.out.println("loading network . . .");
-            network = DataIO.readNetwork(file);
-        } catch (IOException ex) {
-            System.err.println("Unable to load data.");
-            ex.printStackTrace();
-            return;
-        }
-
-
-        // this is some random point somewhere near Inverness
-        // we can't search from here thought, because it's not on the network
-        GeoLocation examplePoint = GeoLocation.ofRounded(57.14981461633668, -2.094482424967341);
-        System.out.println("example point: " + examplePoint);
-
-        // setup used to find the nearest point on the network (only needs to be done once)
-        NearestFinder<GeoLocation> finder = GeoLocation.nearestHaversine(network.locations());
-
-        // find a point near to out example point, but actually on the network
-        // we should find a point quite close to our example point
-        GeoLocation startPoint = finder.nearest(examplePoint);
-        System.out.println("start point: " + startPoint);
-
-        // create a Dijkstra instance for inbound search (only needs to be done once)
-        //SpatialTemporalReachabilityAlgorithm<Duration> dijkstra = Dijkstra.ofDuration();
-        SpatialTemporalReachabilityAlgorithm<Duration> dijkstra = Dijkstra.ofNegativeDuration();
-        // (* change to ofNegativeDuration() for inbound)
-
-
-        // the parameters of our search (* becomes end time for inbound)
-        LocalTime startTime = LocalTime.of(9, 0, 0);
-        //Duration maxTravelTime = Duration.ofHours(1);
-        Duration maxTravelTime = Duration.ofHours(-1);
-        // (* change to -3 for inbound)
-
-
-        // this is setup for passing our specific search parameters to the algorithm
-        //Graph<JourneyState, Duration> graph = network.spatialTemporalGraph();
-        Graph<JourneyState, Duration> graph = network.spatialTemporalGraph().reverse();
-        // (* add .reverse() for inbound)
-
-        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), startTime);
-        JourneyState startState = JourneyState.of(startPoint, dateTime, false, true, "start");
-        Function<JourneyState, JourneyPosition> toSpatial = state -> state.position();
-        BiFunction<JourneyPosition, Duration, JourneyState> toSpatialTemporal
-                = (position, cost) -> JourneyState.of(position, dateTime, cost);
+        // Please note a large section of code has been remove due to request
+        // from the SDTC team at RGU and HITRANS (Highland and Island Transport).
 
         // ArrayList containing all the journeys from the analysis
         ArrayList<Journey> journeys = new ArrayList<>();
-
-        // this runs the algorithm, printing the time taken to reach each reachable point
-        // each point is printed as soon as it is discovered
-        try {
-            System.out.println("searching . . .");
-            dijkstra.reachable(graph, startState, maxTravelTime, (state, duration) -> {
-
-                // this is the callback code to process each value
-                GeoLocation location = state.location();
-                System.out.println(location + "\t" + duration);
-                journeys.add(new Journey(location,duration));
-
-            }, toSpatial, toSpatialTemporal);
-            System.out.println("search complete.");
-        } catch (InterruptedException ex) {
-            System.err.println("Dijkstra thread was cancelled by an interrupt, aborting.");
-            return;
-        }
 
         // Load DataZones
         ArrayList<DataZone> zones = loadDataZoneMetrics();
